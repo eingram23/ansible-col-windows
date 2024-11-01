@@ -11,7 +11,7 @@
 
     - name: Wake PC if in sleep mode
       ansible.builtin.include_role:
-        name: eingram23.linux.wol
+        name: eingram23.windows.wol
 
     # - name: Obtain information about a registry key using short form
     #   ansible.windows.win_reg_stat:

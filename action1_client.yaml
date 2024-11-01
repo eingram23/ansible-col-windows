@@ -1,0 +1,38 @@
+---
+- name: Install/Uninstall action1 client
+  hosts: "{{ hostvar }}"
+  gather_facts: false
+  become: true
+  become_method: runas
+
+  vars:
+    - package: "action1_agent"
+    - root_dest: 'c:\temp\'
+
+  tasks:
+
+    - name: Wake PC if in sleep mode
+      ansible.builtin.include_role:
+        name: eingram23.windows.wol
+
+    - name: Download {{ package }}
+      ansible.windows.win_get_url:
+        url: https://app.action1.com/agent/08d8a8f4-954a-11ef-b313-771e547b3e84/Windows/agent(My_Organization).msi
+        dest: "{{ root_dest }}{{ package }}.msi"
+    
+    - name: Run msi install role for {{ package }}
+      when: uninstall is not defined
+      ansible.builtin.include_role:
+        name: eingram23.windows.msi
+        tasks_from: install
+
+    - name: Run msi uninstall role for {{ package }}
+      when: uninstall is defined and uninstall == "yes"
+      ansible.builtin.include_role:
+        name: eingram23.windows.msi
+        tasks_from: uninstall
+    
+    - name: Clean up installer
+      ansible.windows.win_file:
+        path: "{{ root_dest }}{{ package }}.msi"
+        state: absent

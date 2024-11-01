@@ -15,7 +15,7 @@
 
     - name: Run WakeOnLAN role
       ansible.builtin.import_role:
-        name: eingram23.linux.wol
+        name: eingram23.windows.wol
 
     - name: Gather facts
       ansible.builtin.setup:

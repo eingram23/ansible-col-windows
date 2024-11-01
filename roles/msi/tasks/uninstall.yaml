@@ -1,0 +1,5 @@
+---
+- name: Uninstall {{ package }}
+  ansible.windows.win_package:
+    path: "{{ root_dest }}{{ package }}.msi"
+    state: absent
