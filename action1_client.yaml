@@ -21,13 +21,13 @@
         dest: "{{ root_dest }}{{ package }}.msi"
     
     - name: Run msi install role for {{ package }}
-      when: task is "install"
+      when: task == "install"
       ansible.builtin.include_role:
         name: eingram23.windows.msi
         tasks_from: install
 
     - name: Run msi uninstall role for {{ package }}
-      when: task is "uninstall"
+      when: task == "uninstall"
       ansible.builtin.include_role:
         name: eingram23.windows.msi
         tasks_from: uninstall
