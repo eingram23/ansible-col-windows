@@ -6,8 +6,8 @@
   become_method: runas
 
   vars:
-    - package: "action1_agent"
-    - root_dest: 'c:\temp\'
+    package: "action1_agent"
+    root_dest: 'c:\temp\'
 
   tasks:
 
