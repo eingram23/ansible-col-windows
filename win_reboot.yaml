@@ -1,19 +1,10 @@
-- name: Test
+- name: Reboot Windows machine
   hosts: "{{ hostvar }}"
   gather_facts: false
   become: true
-  become_method: runas
-  become_user: SYSTEM
 
   tasks:
 
     - name: Reboot windows host
       ansible.windows.win_reboot:
-        reboot_timeout: 1
-      ignore_errors: true
-
-    - name: Wait for
-      ansible.builtin.wait_for_connection:
-        sleep: 1
-        timeout: 60
-        delay: 1
+        msg: Reboot via Ansible
