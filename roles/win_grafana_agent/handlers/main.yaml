@@ -3,3 +3,6 @@
   ansible.windows.win_service:
     name: Grafana Agent
     state: restarted
+
+- name: Reboot
+  ansible.windows.win_reboot:

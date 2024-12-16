@@ -1,0 +1,19 @@
+---
+- name: Install Grafana Agent
+  hosts: "{{ hostvar | default([]) }}"
+  gather_facts: false
+  become: true
+
+  tasks:
+
+    - name: Install grafana agent
+      when: task == "install"
+      ansible.builtin.include_role:
+        name: eingram23.windows.win_grafana_agent
+        tasks_from: install
+
+    - name: Uninstall grafana agent
+      when: task == "uninstall"
+      ansible.builtin.include_role:
+        name: eingram23.windows.win_grafana_agent
+        tasks_from: uninstall
