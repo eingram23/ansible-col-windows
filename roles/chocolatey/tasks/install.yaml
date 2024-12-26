@@ -1,0 +1,78 @@
+- name: Assert that the package is valid - {{ software }}
+  ansible.builtin.assert:
+    that:
+      - software in chocolatey_package | map(attribute='name') | list
+    fail_msg: "{{ software }} is not a valid chocolatey_package"
+    success_msg: "{{ software }} is a valid chocolatey_package, play will continue"
+
+- name: Wake PC if in sleep mode
+  ansible.builtin.include_role:
+    name: eingram23.windows.wol
+
+- name: Set software_version from chocolatey_package.version
+  set_fact:
+    software_version: "{{ chocolatey_package | selectattr('name', 'equalto', software) | map(attribute='version') | list | first }}"
+
+- name: ensure .NET Framework 4.8 requirement is satisfied for Chocolatey CLI v2.0.0+
+  # when: dotnet48_version not exists or dotnet48_version < "528040"
+  when: '"netfx-4.8" in chocolatey_package'
+  block:
+    - name: Install Chocolatey CLI v1.4.0
+      chocolatey.chocolatey.win_chocolatey:
+        name: 'chocolatey'
+        state: present
+        version: '1.4.0'
+
+    - name: Install Microsoft .NET Framework 4.8
+      chocolatey.chocolatey.win_chocolatey:
+        name: 'netfx-4.8'
+        state: present
+
+    - name: Reboot the host to complete .NET Framework 4.8 install
+      when: chocolatey_reboot == "yes"
+      ansible.windows.win_reboot:
+
+    - name: Install Chocolatey CLI v2.0.0+ when .NET Framework 4.8 dependency is met
+      chocolatey.chocolatey.win_chocolatey:
+        name: 'chocolatey'
+        state: latest
+
+- name: Ensure Chocolatey itself is installed, using community repo for the bootstrap
+  chocolatey.chocolatey.win_chocolatey:
+    name: chocolatey
+    state: latest
+
+- name: Install/Upgrade Choco Package(s)
+  when: chocolatey_force == "no"
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ software }}"
+    state: present
+    version: "{{ software_version }}"
+
+- name: Install/Upgrade Choco Package(s) (force)
+  when: chocolatey_force == "yes"
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ software }}"
+    state: present
+    version: "{{ software_version }}"
+    force: true
+
+# - name: Wait 600 seconds for target connection to become reachable/usable
+#   ansible.builtin.wait_for_connection:
+
+- name: Gather facts from chocolatey
+  chocolatey.chocolatey.win_chocolatey_facts:
+
+- name: Displays the Outdated packages
+  ansible.builtin.debug:
+    msg: "{{ outdated_item.package }}"
+  loop: "{{ ansible_chocolatey.outdated }}"
+  loop_control:
+    loop_var: outdated_item
+
+# - name: Wait 600 seconds for target connection to become reachable/usable
+#   ansible.builtin.wait_for_connection:
+
+- name: Displays the Packages
+  ansible.builtin.debug:
+    var: ansible_chocolatey.packages

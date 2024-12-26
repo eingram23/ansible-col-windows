@@ -1,0 +1,13 @@
+chocolatey_package:
+  - name: 7zip
+    version: 19.00
+  - name: wiztree
+    version: 4.23.0
+  - name: notepadplusplus
+    version: 8.7.4
+  - name: malwarebytes
+    version: 5.2.5.120
+  - name: crystaldiskmark
+    version: 8.0.5
+  - name: netfx-4.8
+    version: 4.8.0.20220524

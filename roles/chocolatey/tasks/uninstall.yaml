@@ -1,0 +1,6 @@
+- name: Remove Choco Package(s)
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ item.name }}"
+    state: absent
+  when: action == "uninstall"
+  loop: "{{ package }}"
