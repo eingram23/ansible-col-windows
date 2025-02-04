@@ -1,0 +1,11 @@
+- name: Run health check on Windows servers
+  hosts: "{{ hostvar }}"
+  gather_facts: false
+  become: true
+  become_user: SYSTEM
+  become_method: runas
+
+  tasks:
+
+    - ansible.builtin.import_role:
+        name: eingram23.windows.healthcheck

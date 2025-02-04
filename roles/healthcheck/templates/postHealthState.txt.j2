@@ -1,0 +1,10 @@
+Windows Services Differences:
+    Not Running (Was running previously):
+{% for service in services_stopped %}
+        {{ service }}
+{% endfor %}
+
+    Running (Was not running previously):
+{% for service in services_started %}
+        {{ service }}
+{% endfor %}

@@ -1,0 +1,44 @@
+---
+- name: Check running services (pre check)
+  ansible.windows.win_service_info:
+  register: services
+
+- name: Set fact with services that are started state
+  set_fact:
+    services_running: "{{ services.services | selectattr('state', 'equalto', 'started') | map(attribute='name') | list }}"
+
+- name: Create preHealthState file on server
+  ansible.windows.win_template:
+    src: preHealthState.txt.j2
+    dest: C:\temp\preHealthState.txt
+
+- name: Start DHCP Service
+  ansible.windows.win_service:
+    name: DHCP Server
+    state: started
+
+- name: Stop services
+  ansible.windows.win_service:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - DNS Server
+
+- name: Check if service is running (post check)
+  ansible.windows.win_service_info:
+  register: services_post
+
+- name: Set fact with services that are not in started state
+  set_fact:
+    services_running_post: "{{ services_post.services | selectattr('state', 'equalto', 'started') | map(attribute='name') | list }}"
+
+- name: Compare services running before and after
+  ansible.builtin.set_fact:
+    services_stopped: "{{ services_running | difference(services_running_post) }}"
+    services_started: "{{ services_running_post | difference(services_running) }}"
+
+- name: Create postHealthState file on server
+  ansible.windows.win_template:
+    src: postHealthState.txt.j2
+    dest: C:\temp\postHealthState.txt
+
