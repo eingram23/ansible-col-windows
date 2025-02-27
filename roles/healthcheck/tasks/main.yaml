@@ -3,6 +3,16 @@
   ansible.windows.win_service_info:
   register: services
 
+- name: Get md5 hash of file (pre check)
+  ansible.builtin.win_stat:
+    path: "{{ file_item_pre }}"
+    checksum_algorithm: md5
+    get_checksum: true
+  loop: "{{ files_to_check }}"
+  loop_control:
+    loop_var: file_item_pre
+  register: file_stat_pre
+
 - name: Set fact with services that are started state
   set_fact:
     services_running: "{{ services.services | selectattr('state', 'equalto', 'started') | map(attribute='name') | list }}"
@@ -12,21 +22,69 @@
     src: preHealthState.txt.j2
     dest: C:\temp\preHealthState.txt
 
-- name: Start DHCP Service
-  ansible.windows.win_service:
-    name: DHCP Server
-    state: started
+# - name: Start DHCP Service
+#   ansible.windows.win_service:
+#     name: DHCP Server
+#     state: started
 
-- name: Stop services
-  ansible.windows.win_service:
-    name: "{{ item }}"
-    state: stopped
-  loop:
-    - DNS Server
+# - name: Stop services
+#   ansible.windows.win_service:
+#     name: "{{ item }}"
+#     state: stopped
+#   loop:
+#     - DNS Server
 
 - name: Check if service is running (post check)
   ansible.windows.win_service_info:
   register: services_post
+
+- name: Get md5 hash of file (post check)
+  ansible.builtin.win_stat:
+    path: "{{ file_item_post }}"
+    checksum_algorithm: md5
+    get_checksum: true
+  loop: "{{ files_to_check }}"
+  loop_control:
+    loop_var: file_item_post
+  register: file_stat_post
+
+# - debug: 
+#     var: item.stat.checksum
+#   loop: "{{ file_stat_pre.results }}"
+# - ansible.builtin.debug:
+#     var: item.stat.checksum
+#   loop: "{{ file_stat_post.results }}"
+
+# - name: Compare files
+#   when: hash_item.0.stat.checksum is defined and hash_item.0.stat.checksum == hash_item.1.stat.checksum
+#   ansible.builtin.debug:
+#     msg: "File comparison failed for {{ hash_item.0.stat.filename }}"
+#   with_together:
+#     - "{{ file_stat_pre.results }}"
+#     - "{{ file_stat_post.results }}"
+#   loop_control:
+#     label: "{{ hash_item.0.stat.filename | default('')}}"
+#     loop_var: hash_item
+
+- name: Initialize failed files list
+  ansible.builtin.set_fact:
+    failed_files: []
+
+- name: Compare files and build failed list
+  ansible.builtin.set_fact:
+    failed_files: "{{ failed_files + [hash_item.0.stat.path] }}"
+  when: hash_item.0.stat.checksum is defined and hash_item.0.stat.checksum == hash_item.1.stat.checksum
+  with_together:
+    - "{{ file_stat_pre.results }}"
+    - "{{ file_stat_post.results }}"
+  loop_control:
+    label: "{{ hash_item.0.stat.path | default('')}}"
+    loop_var: hash_item
+
+- name: Display files that failed comparison
+  ansible.builtin.debug:
+    msg: "Files that changed: {{ failed_files | join(', ') }}"
+  when: failed_files | length > 0
 
 - name: Set fact with services that are not in started state
   set_fact:

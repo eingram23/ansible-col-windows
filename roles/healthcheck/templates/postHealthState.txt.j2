@@ -8,3 +8,8 @@ Windows Services Differences:
 {% for service in services_started %}
         {{ service }}
 {% endfor %}
+
+File Hash Check (Changes in files detected before and after healthcheck):
+{% for file in failed_files %}
+        {{ file }}
+{% endfor %}

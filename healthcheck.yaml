@@ -5,6 +5,11 @@
   become_user: SYSTEM
   become_method: runas
 
+  vars:
+    files_to_check: 
+      - C:\temp\7zip_install.txt
+      - c:\temp\check_disk.ps1
+
   tasks:
 
     - ansible.builtin.import_role:
